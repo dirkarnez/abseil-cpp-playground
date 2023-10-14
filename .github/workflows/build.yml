@@ -13,12 +13,14 @@ jobs:
         compiler:
         - {
             name: "x86_64-8.1.0-release-posix-seh-rt_v6-rev0",
-            url: "https://github.com/dirkarnez/cpp-tools/raw/main/x86_64-8.1.0-release-posix-seh-rt_v6-rev0.7z"
+            url: "https://github.com/dirkarnez/cpp-tools/raw/main/x86_64-8.1.0-release-posix-seh-rt_v6-rev0.7z",
+            abseil_url: "https://github.com/dirkarnez/abseil-cpp-prebuilt/releases/download/v20230802.0/abseil-cpp-prebuilt-v20230802.0-x86_64-8.1.0-release-posix-seh-rt_v6-rev0.zip"
           }
-        # - {
-        #     name: "winlibs-x86_64-posix-seh-gcc-11.2.0-mingw-w64-9.0.0-r1",
-        #     url: "https://github.com/brechtsanders/winlibs_mingw/releases/download/11.2.0-12.0.1-9.0.0-r1/winlibs-x86_64-posix-seh-gcc-11.2.0-mingw-w64-9.0.0-r1.zip"
-        #   }
+        - {
+            name: "winlibs-x86_64-posix-seh-gcc-11.2.0-mingw-w64-9.0.0-r1",
+            url: "https://github.com/brechtsanders/winlibs_mingw/releases/download/11.2.0-12.0.1-9.0.0-r1/winlibs-x86_64-posix-seh-gcc-11.2.0-mingw-w64-9.0.0-r1.zip",
+            abseil_url: "https://github.com/dirkarnez/abseil-cpp-prebuilt/releases/download/v20230802.0/abseil-cpp-prebuilt-v20230802.0-winlibs-x86_64-posix-seh-gcc-11.2.0-mingw-w64-9.0.0-r1.zip"
+          }
         # - {
         #     name: "msvc2019"
         #   }
@@ -50,8 +52,8 @@ jobs:
           
       - shell: cmd
         run: |
-          curl https://github.com/dirkarnez/portaudio-prebuilt/releases/download/v19.7.0/portaudio-v19.7.0-mingw64-x86_64-posix-seh-rev0-8.1.0.zip -L -O &&^
-          7z.exe x portaudio-v19.7.0-mingw64-x86_64-posix-seh-rev0-8.1.0.zip -o"portaudio-v19.7.0-mingw64-x86_64-posix-seh-rev0-8.1.0"
+          curl ${{ matrix.compiler.abseil_url }} -L --output abseil.zip &&^
+          7z.exe x abseil.zip -o"abseil"
 
       # - shell: cmd
       #   run: |
@@ -88,7 +90,7 @@ jobs:
             cmake.exe -G"MinGW Makefiles" ^
             -DCMAKE_BUILD_TYPE=Release ^
             -DBUILD_SHARED_LIBS=OFF ^
-            -Dportaudio_DIR="%CD_LINUX%/portaudio-v19.7.0-mingw64-x86_64-posix-seh-rev0-8.1.0/lib/cmake/portaudio" ^
+            -Dabsl_DIR="%CD_LINUX%/abseil/lib/cmake/absl" ^
             -B./cmake-build &&^
             cd cmake-build && cmake --build . --config Release
 
@@ -96,6 +98,8 @@ jobs:
         uses: thedoctor0/zip-release@master
         with:
           type: 'zip'
+          path: |
+            absl-cpp-playground*
           directory: "cmake-build"
           filename: "${{ github.event.repository.name }}-${{ github.ref_name }}-${{ matrix.compiler.name }}.zip"
         
